@@ -3,7 +3,7 @@ const Feedback = require("../models/feedbackModel");
 const Responses = require("../models/responsesModel");
 
 async function getTraingData() {
-  let trainingData = await ChatData.find({}).populate("label");
+  let trainingData = await ChatData.find().populate("label");
 
   console.log(trainingData);
   return trainingData;
@@ -16,20 +16,31 @@ async function updateTraingData(label, input, output) {
     output,
   });
 
-  const chatData = await ChatData.find({});
+  let chatData = await ChatData.create({
+    trainigData: [feedback._id],
+  });
 
-  const res = await ChatData.findByIdAndUpdate(chatData._id,
-    {
-      $push: { trainigData: feedback },
-    }
-  );
+  if (chatData) {
+    await ChatData.findByIdAndUpdate(chatData._id,
+      {
+        $push: { trainigData: feedback },
+      }
+    );
+  } else {
+    chatData = await new ChatData({
+      trainigData: [feedback._id],
+    });
+  }
+
+  
 
   console.log(`trainigData updated`);
-  return res;
 }
 
 async function getResponses() {
-  const responses = await Responses.find({}); 
+  const responses = await Responses.find() || await Responses.create({
+    responses: {},
+});
 
   return responses;
 }

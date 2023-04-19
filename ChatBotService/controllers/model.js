@@ -1,27 +1,63 @@
-const tf = require('@tensorflow/tfjs-node');
+const tf = require("@tensorflow/tfjs-node");
 const { saveModelToDB, loadModelFromDB } = require("./modelLoader");
-const { getTraingData } = require('./trainigData');
+const { getTraingData } = require("./trainigData");
 
 // Функция обучения модели
 async function trainModel() {
-  const trainData = getTraingData();
+  const trainData = [
+    { label: "Приветсвие", input: "Привет", output: "Здавствуй" },
+    {
+      label: "Как меня зовут",
+      input: "Как тебя зовут?",
+      output: "Я psu chatbot, я люблю общаться",
+    },
+    {
+      label: "Прощание",
+      input: "Пока!",
+      output: "Пока, надеюь тебе понравилось со мной общаться",
+    },
+    {
+      label: "Цель работы",
+      input: "Зачем ты нужен. Что ты делаешь",
+      output: "Моя задача консультировать студентов и абитуриентов",
+    },
+    {
+      label: "Шутка",
+      input: "Напиши какую-нибудь шутку. Пошути",
+      output: "В семье скелетов родился сын, назвали Костян",
+    },
+  ];
   // Создаем пустую модель с одним входным слоем
   const model = tf.sequential();
-  model.add(tf.layers.dense({ inputShape: [trainData[0].input.length], units: 8, activation: 'relu' }));
+  model.add(
+    tf.layers.dense({
+      units: 8,
+      activation: "relu",
+    })
+  );
 
   // Добавляем скрытые слои
-  model.add(tf.layers.dense({ units: 16, activation: 'relu' }));
-  model.add(tf.layers.dense({ units: 32, activation: 'relu' }));
+  model.add(tf.layers.dense({ units: 16, activation: "relu" }));
+  model.add(tf.layers.dense({ units: 32, activation: "relu" }));
 
   // Добавляем выходной слой
-  model.add(tf.layers.dense({ units: trainData[0].output.length, activation: 'softmax' }));
+  model.add(
+    tf.layers.dense({
+      units: trainData[0].output.length,
+      activation: "softmax",
+    })
+  );
 
   // Компилируем модель
-  model.compile({ optimizer: 'adam', loss: 'categoricalCrossentropy' });
+  model.compile({ optimizer: "adam", loss: "categoricalCrossentropy" });
 
   // Преобразуем данные обучения в тензоры
-  const xs = trainData.map(item => tf.tensor2d([item.input], [1, item.input.length]));
-  const ys = trainData.map(item => tf.tensor2d([item.output], [1, item.output.length]));
+  const xs = trainData.map((item) =>
+    tf.tensor2d([item.input], [1, item.input.length])
+  );
+  const ys = trainData.map((item) =>
+    tf.tensor2d([item.output], [1, item.output.length])
+  );
 
   // Обучаем модель
   await model.fit(xs, ys, { epochs: 100 });
@@ -30,10 +66,10 @@ async function trainModel() {
   await saveModelToDB(model);
 
   // Освобождаем память от тензоров
-  xs.forEach(tensor => tensor.dispose());
-  ys.forEach(tensor => tensor.dispose());
+  xs.forEach((tensor) => tensor.dispose());
+  ys.forEach((tensor) => tensor.dispose());
 
-  console.log('Модель успешно обучена и сохранена');
+  console.log("Модель успешно обучена и сохранена");
 }
 
 // Функция предсказания с использованием загруженной модели
@@ -55,10 +91,10 @@ async function predict(inputData) {
     input.dispose();
     output.dispose();
 
-    console.log('Результат предсказания:', result);
+    console.log("Результат предсказания:", result);
     return result;
   } else {
-    console.error('Модель не загружена из базы данных');
+    console.error("Модель не загружена из базы данных");
     return null;
   }
 }

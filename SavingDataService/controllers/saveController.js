@@ -1,10 +1,14 @@
 const Responses = require("../../ChatBotService/models/responsesModel");
-const { updateTraingData } = require("../../ChatBotService/controllers/trainigData");
+const { updateTraingData, getResponses } = require("../../ChatBotService/controllers/trainigData");
 
 async function appendPhrase(req, res) {
     const { input, output, label } = req.body;
 
-    const responses = Responses.find({}).responses;
+    const responses = await Responses.create({
+        responses: {},
+    });
+
+    console.log(`here2`, responses);
 
     if (label in responses) {
         throw new Error("Ответ с таким заголовком уже есть в базе данных");
@@ -18,6 +22,8 @@ async function appendPhrase(req, res) {
     });
 
     const result = updateTraingData(label, input, output);
+
+    console.log(result);
 
     if (result && updated) {
         res.status(202).json({
